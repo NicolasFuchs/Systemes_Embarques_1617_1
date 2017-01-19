@@ -28,22 +28,37 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
+//GPIO1_12,13,14
 #define GPIO AM335X_GPIO1
-#define BTN1 15
-#define BTN2 16
-#define BTN3 17
-//1,2,3 -> 15,16,17
+#define LED1 12
+#define LED2 13
+#define LED3 14
 
-//fonctions
-void buttons_init(){
+
+void leds_init(){
 	am335x_gpio_init(GPIO);
-	am335x_gpio_setup_pin_in(GPIO,BTN1,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN2,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN3,AM335X_GPIO_PULL_NONE,false);
+	am335x_gpio_setup_pin_out(GPIO, LED1, false);
+	am335x_gpio_setup_pin_out(GPIO, LED2, false);
+	am335x_gpio_setup_pin_out(GPIO, LED3, false);
 }
 
-bool is_button_pushed(int btnNb){
-	return !am335x_gpio_get_state(GPIO,btnNb+14);
+void leds_turn_on(int no){
+	am335x_gpio_change_state(GPIO,11+no,true);
 }
 
+void leds_all_on(){
+	am335x_gpio_change_state(GPIO,LED1,true);
+	am335x_gpio_change_state(GPIO,LED2,true);
+	am335x_gpio_change_state(GPIO,LED3,true);
+}
 
+void leds_turn_off(int no){
+	am335x_gpio_change_state(GPIO,11+no,false);
+}
+
+void leds_all_off(){
+	am335x_gpio_change_state(GPIO,LED1,false);
+	am335x_gpio_change_state(GPIO,LED2,false);
+	am335x_gpio_change_state(GPIO,LED3,false);
+}

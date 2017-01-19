@@ -1,3 +1,8 @@
+
+#pragma once
+#ifndef DMTIMER_H_
+#define DMTIMER_H_
+
 /**
  * Copyright 2016 University of Applied Sciences Western Switzerland / Fribourg
  *
@@ -24,26 +29,19 @@
  * Date: 	15.12.16
  */
 
-#include "am335x_gpio.h"
-#include <stdbool.h>
-#include <stdint.h>
+/* timer_init:
+ * inits the dmtimer1
+ */
+void timer_init();
 
-#define GPIO AM335X_GPIO1
-#define BTN1 15
-#define BTN2 16
-#define BTN3 17
-//1,2,3 -> 15,16,17
+/* timer_getVal:
+ * returns the current value of the timer
+ */
+uint32_t timer_getVal();
 
-//fonctions
-void buttons_init(){
-	am335x_gpio_init(GPIO);
-	am335x_gpio_setup_pin_in(GPIO,BTN1,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN2,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN3,AM335X_GPIO_PULL_NONE,false);
-}
+/* timer_get_frequency:
+ * return the frequency of the timer
+ */
+uint32_t timer_get_frequency();
 
-bool is_button_pushed(int btnNb){
-	return !am335x_gpio_get_state(GPIO,btnNb+14);
-}
-
-
+#endif /* DMTIMER_H_ */

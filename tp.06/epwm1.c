@@ -15,13 +15,13 @@
  *
  * Project:	HEIA-FR / Embedded Systems 1 Laboratory
  *
- * Abstract:	AM335x PWMSS - ePWM 
+ * Abstract:	Introduction to device driver development in C
  *
- * Purpose:	This module implements basic services to drive the AM335x  
- *		Enhanced Pulse-Width Modulation module (ePWM).
+ * Purpose:	Program for TP06 Systèmes embarqués
+ *			manage pwm module
  *
- * Author: 	<author's>
- * Date: 	<date>
+ * Author: 	Charlotte Junod et Nicolas Fuchs
+ * Date: 	13.1.2017
  */
 
 #include <stdio.h>
@@ -29,26 +29,27 @@
 #include <stdint.h>
 #include <am335x_clock.h>
 #include <am335x_mux.h>
+#include "epwm1.h"
 
 // define am335x epwm controller registers
 struct epwm_ctrl {
 	// Time-Base Registers (TB)
-	uint16_t tbctl;		// 00
+	uint16_t tbctl;		// 00 -> reset value (?)
 	uint16_t tbsts;		// 02
 	uint16_t tbphshr;	// 04
 	uint16_t tbphs;		// 06
-	uint16_t tbcnt;		// 08
-	uint16_t tbprd;		// 0a
+	uint16_t tbcnt;		// 08 -> compteur
+	uint16_t tbprd;		// 0a -> période
 	uint16_t res1[1];	// 0c
 
 	// Counter Compare Registers (CC)
-	uint16_t cmpctl;	// 0e
+	uint16_t cmpctl;	// 0e -> "shadowing" (?)
 	uint16_t cmpahr;	// 10
-	uint16_t cmpa;		// 12
+	uint16_t cmpa;		// 12 -> counter compare
 	uint16_t cmpb;		// 14
 
 	// Action Qualifier Registers (AQ)
-	uint16_t aqctla;	// 16
+	uint16_t aqctla;	// 16 -> 0 -> actions disabled
 	uint16_t aqctlb;	// 18
 	uint16_t aqsfrc;	// 1a
 	uint16_t aqcsfrc;	// 1c
@@ -84,16 +85,8 @@ struct epwm_ctrl {
 	uint16_t hrcnfg;	// c0
 };
 
-// define am335x pwmss controller registers
-struct pwm_ctrl {
-	uint32_t 	 pwmss[64];
-	uint32_t	 ecap[32];
-	uint32_t         eqep[32];
-	struct epwm_ctrl epwm;
-};
-
 // system clock frequency
-#define SYSCLK		(100000000) 
+#define SYSCLK		(100000000)
 
 // TB register definition
 #define TB_PRD_MAX	(65535)
@@ -106,7 +99,7 @@ struct pwm_ctrl {
 #define AQ_ZRO_CLEAR	(1<<0)
 #define AQ_CAU_CLEAR	(1<<4)
 
-// TB divider look-up table 
+// TB divider look-up table
 static const struct {
 	uint32_t div;
 	uint32_t clkdiv;
@@ -149,12 +142,16 @@ static const struct {
 	{1536, 7, 6}, // 128 * 12
 	{1792, 7, 7}, // 128 * 14
 };
+// define am335x pwmss controller registers
+struct pwm_ctrl {
+	uint32_t 	 pwmss[64];
+	uint32_t	 ecap[32];
+	uint32_t         eqep[32];
+	struct epwm_ctrl epwm;
+};
 
 // am335x epwm1 controller memory mapped access register pointers
 static volatile struct pwm_ctrl* pwm = (struct pwm_ctrl*)0x48302000;
-
-// macro to compute number of elements of an array
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 // -----------------------------------------------------------------------------
 // implementation of local methods
@@ -168,7 +165,19 @@ struct divider {
 
 static struct divider get_divider(uint32_t f)
 {
+	int periode;
+	if(f==0) periode=0;
+	else periode = SYSCLK/f;
+	int diviseur= (periode+TB_PRD_MAX-1)/TB_PRD_MAX;
+
+	int i;
+	for(i=0; i<ARRAY_SIZE(dividers)-1 && diviseur>dividers[i].div;i++);
+
 	struct divider divider;
+	divider.clkdiv = dividers[i].clkdiv;
+	divider.hsdiv = dividers[i].hsdiv;
+	divider.prd = (f==0)? 0 : (SYSCLK/dividers[i].div/f);
+
 	return divider;
 }
 
@@ -178,20 +187,50 @@ static struct divider get_divider(uint32_t f)
 
 void epwm1_init()
 {
+	printf("epwm init\n");
 	am335x_clock_enable_epwm_module (AM335X_CLOCK_EPWM1);
 	am335x_mux_setup_epwm_pins (AM335X_MUX_EPWM1);
+
+	pwm->epwm.tbprd =0;
+	pwm->epwm.tbcnt =0;
+	pwm->epwm.tbctl =0;
+	pwm->epwm.cmpa =0;
+	pwm->epwm.cmpctl =0;
+	pwm->epwm.aqctla =0;
 }
 
 
 // -----------------------------------------------------------------------------
+//PREC: freq<=SYSCLK
+void epwm1_set_frequency(uint32_t freq){
+	printf("epwm set freq\n");
+	struct divider div = get_divider(freq);
 
-void epwm1_set_frequency(uint32_t freq)
-{
+	pwm->epwm.tbprd = div.prd;  //période
+	pwm->epwm.tbctl = 0;
+
+	printf("dividers: %d %d\n",(int)div.hsdiv,(int)div.clkdiv);
+
+	pwm->epwm.tbctl = 	TB_SYNC_DISABLE |
+						(div.hsdiv<<TB_HSDIV_SHIFT)|
+						(div.clkdiv<<TB_CLKDIV_SHIFT);
+
+	epwm1_set_duty(50);
 }
 
 // -----------------------------------------------------------------------------
 
-void epwm1_set_duty(uint32_t duty)
-{
+void epwm1_set_duty(uint32_t duty){
+	if(duty==0){
+		pwm->epwm.cmpa=0;
+		pwm->epwm.aqctla= AQ_ZRO_CLEAR;
+	}else if (duty>=100){
+		duty=100;
+		pwm->epwm.cmpa=0;
+		pwm->epwm.aqctla=AQ_ZRO_SET;
+	}else{
+		pwm->epwm.cmpa=pwm->epwm.tbprd*duty/100;
+		pwm->epwm.aqctla = AQ_ZRO_SET | AQ_CAU_CLEAR;
+	}
 }
 

@@ -17,33 +17,32 @@
  *
  * Abstract:	Introduction to device driver development in C
  *
- * Purpose:	Demo program implementing a basic timer and countdown
- *		application, which is based on the AM335x DMTimer1 timer.
+ * Purpose:	Program for TP06 Systèmes embarqués
+ *			manage epwm1 functions
  *
  * Author: 	Charlotte Junod et Nicolas Fuchs
- * Date: 	15.12.16
+ * Date: 	13.1.2017
  */
 
-#include "am335x_gpio.h"
-#include <stdbool.h>
-#include <stdint.h>
+#include "epwm1.h"
+#include "buzzer.h"
 
-#define GPIO AM335X_GPIO1
-#define BTN1 15
-#define BTN2 16
-#define BTN3 17
-//1,2,3 -> 15,16,17
+#define FREQ 3800
 
-//fonctions
-void buttons_init(){
-	am335x_gpio_init(GPIO);
-	am335x_gpio_setup_pin_in(GPIO,BTN1,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN2,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN3,AM335X_GPIO_PULL_NONE,false);
+void buzzer_init(){
+	epwm1_init();
+	epwm1_set_frequency(FREQ);
+	buzzer_off();
 }
 
-bool is_button_pushed(int btnNb){
-	return !am335x_gpio_get_state(GPIO,btnNb+14);
+void buzzer_set_frequency(int f){
+	epwm1_set_frequency(f);
 }
 
+void buzzer_on(){
+	epwm1_set_duty(50);
+}
 
+void buzzer_off(){
+	epwm1_set_duty(0);
+}

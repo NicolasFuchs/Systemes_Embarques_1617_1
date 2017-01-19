@@ -1,3 +1,8 @@
+
+#pragma once
+#ifndef BUTTONS_H_
+#define BUTTONS_H_
+
 /**
  * Copyright 2016 University of Applied Sciences Western Switzerland / Fribourg
  *
@@ -28,22 +33,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define GPIO AM335X_GPIO1
-#define BTN1 15
-#define BTN2 16
-#define BTN3 17
-//1,2,3 -> 15,16,17
+/* buttons_init:
+ * inits the three buttons
+ */
+void buttons_init();
 
-//fonctions
-void buttons_init(){
-	am335x_gpio_init(GPIO);
-	am335x_gpio_setup_pin_in(GPIO,BTN1,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN2,AM335X_GPIO_PULL_NONE,false);
-	am335x_gpio_setup_pin_in(GPIO,BTN3,AM335X_GPIO_PULL_NONE,false);
-}
+/* is_button_pushed:
+ * btnNb: number of the button about which we want information
+ * return true if the button is pushed, false otherwise
+ */
+bool is_button_pushed(int btnNb);
 
-bool is_button_pushed(int btnNb){
-	return !am335x_gpio_get_state(GPIO,btnNb+14);
-}
-
-
+#endif /* BUTTONS_H_ */
