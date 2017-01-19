@@ -30,17 +30,50 @@
 
 #include<stdbool.h>
 
+/*
+ * thermo_init:
+ * initialise les ressources du thermo
+ */
 void thermo_init();
 
+/*
+ * thermo_read:
+ * lit la température
+ * return: température courante
+ */
 int thermo_read();
 
-int thermo_alarm_read();
+/*
+ *thermo_is_alarm_on:
+ *thermo_is_alarm_on:lit la valeur du pin d'alarme
+ *return: true si l'alarme est allumée, false sinon
+ */
 bool thermo_is_alarm_on();
 
+/*
+ * thermo_read_low_seuil:
+ * return: valeur de Tlow
+ */
 int thermo_read_low_seuil();
+
+/*
+ * thermo_read_high_seuil:
+ * return: valeur de Thigh
+ */
 int thermo_read_high_seuil();
 
-int thermo_set_low_seuil();
-int thermo_set_high_seuil();
+/*
+ * thermo_set_low_seuil:
+ * change la valeur de Tlow
+ *	tmp: nouvelle valeur du seuil
+ */
+int thermo_set_low_seuil(int tmp);
+
+/*
+ * thermo_set_high_seuil:
+ * change la valeur de Thigh
+ *	tmp: nouvelle valeur du seuil
+ */
+int thermo_set_high_seuil(int tmp);
 
 #endif

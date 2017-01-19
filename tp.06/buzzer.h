@@ -28,12 +28,29 @@
  * Date: 	13.1.2017
  */
 
+/*
+ * buzzer_init:
+ * initialise les ressources du buzzer
+ */
 void buzzer_init();
 
+/*
+ * buzzer_set_frequency:
+ * change la fréquence du buzzer
+ * f: fréquence souhaitée
+ */
 void buzzer_set_frequency(int f);
 
+/*
+ * buzzer_on:
+ * allume le buzzer
+ */
 void buzzer_on();
 
+/*
+ * buzzer_off:
+ * désactive le buzzer
+ */
 void buzzer_off();
 
 #endif

@@ -34,22 +34,26 @@
 #include "leds.h"
 // ----------------------------------------------------------------------------
 
-//min freq=400, max freq=5000
+//min freq=400, max freq=5000 (<- décidé arbitrairement)
 #define FREQ(x) 68*x+400
 #define INV_FREQ(x) (x-400)/68
 
 static int crt_frequency=3800;
 
+//mode pour changer Thigh
 static void set_high_thermo(){
+	//initialisation de l'état
 	printf("entering high seuil settings\n");
 	buzzer_off();
 	leds_turn_on(1);
 	int crt_value = thermo_read_high_seuil();
 	int low_seuil=thermo_read_low_seuil();
 	seg7_display(crt_value);
+
 	//réglages
 	while(true){
 		enum wheel_states state = wheel_get_state();
+		//appuyer sur le bouton -> valider la valeur choisie
 		if(state==RESET){
 			while(wheel_get_state()==RESET);
 			thermo_set_high_seuil(crt_value);
@@ -69,6 +73,7 @@ static void set_high_thermo(){
 	}
 }
 
+//mode pour changer Tlow
 static void set_low_thermo(){
 	printf("entering high seuil settings\n");
 	buzzer_off();
@@ -79,6 +84,7 @@ static void set_low_thermo(){
 	//réglages
 	while(true){
 		enum wheel_states state = wheel_get_state();
+		//appuyer sur le bouton -> valider la valeur choisie
 		if(state==RESET){
 			while(wheel_get_state()==RESET);
 			thermo_set_low_seuil(crt_value);
@@ -99,7 +105,7 @@ static void set_low_thermo(){
 }
 
 
-//fonction bonus
+//fonction bonus -> changer la fréquence du buzzer (en live!)
 static void set_freq(){
 	printf("entering frequence settings\n");
 		buzzer_on();
@@ -109,6 +115,7 @@ static void set_freq(){
 		//réglages
 		while(true){
 			enum wheel_states state = wheel_get_state();
+			//appuyer sur le bouton -> valider la valeur choisie
 			if(state==RESET){
 				while(wheel_get_state()==RESET);
 				crt_frequency=FREQ(crt_value);
@@ -142,7 +149,7 @@ int main() {
 		"--> I2C Thermometer (click board Thermo3)\n"
 		"--> PWM Buzzer (click board Buzz)\n");
 
-
+	//initialisation
 	buzzer_init();
 	leds_init();
 	thermo_init();
@@ -154,7 +161,7 @@ int main() {
 	thermo_set_high_seuil(29);
 	thermo_set_low_seuil(28);
 
-	// application...
+	// application
 	while(true) {
 		//afficher la température
 		//bouton activé -> faire les réglages

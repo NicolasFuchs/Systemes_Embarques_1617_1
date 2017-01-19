@@ -37,25 +37,27 @@
 // macro to compute number of elements of an array
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
-// -----------------------------------------------------------------------------
-// implementation of local methods
-// -----------------------------------------------------------------------------
 
-
-static struct divider get_divider(uint32_t f);
-
-// -----------------------------------------------------------------------------
-// implementation of public methods
-// -----------------------------------------------------------------------------
-
+/*
+ * epwm1_init:
+ * initialise les ressources nécessaire au epwm
+ */
 void epwm1_init();
 
-
-// -----------------------------------------------------------------------------
-//PREC: freq<=SYSCLK
+/*
+ * epwm1_set_frequency:
+ * change la valuer de la fréquence
+ * freq: fréquence souhaitée
+ *
+ * PREC: freq<=SYSCLK
+ */
 void epwm1_set_frequency(uint32_t freq);
-// -----------------------------------------------------------------------------
 
+/*
+ * epwm1_set_duty:
+ * change la valeur du duty
+ * duty: duty souhaité
+ */
 void epwm1_set_duty(uint32_t duty);
 
 
