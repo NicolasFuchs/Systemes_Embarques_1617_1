@@ -22,7 +22,7 @@
  * 		extension board of the Beaglebone black.
  *
  * Author: 	Daniel Gachet
- * Date: 	26.10.2016
+ * Date: 	21.11.2016
  */
 
 #include <stdbool.h>
@@ -145,16 +145,15 @@ void seg7_init()
 void seg7_display_value (int value)
 {
 	// test for negative values
-	uint32_t dot = 0;
+	display[1].dot &= ~DP1;
 	if (value < 0) {
-		dot = DP1;
+		display[1].dot |= DP1;
 		value = -value;
 	}
 
 	// display unit & decade
 	display[0].seg7 = seg7[value%10];
 	display[1].seg7 = seg7[(value/10)%10];
-	display[1].dot  = dot;
 
 	seg7_refresh_display();
 }
@@ -175,6 +174,16 @@ void seg7_refresh_display()
 	am335x_gpio_change_states(DIG_GPIO, display[digit].digit, true);
 
 	digit = (digit + 1) % 2;
+}
+
+// -----------------------------------------------------------------------------
+
+void seg7_display_dot (bool state)
+{
+	if (state) 
+		display[1].dot |= DP2;
+	else
+		display[1].dot &= ~DP2;
 }
 
 
